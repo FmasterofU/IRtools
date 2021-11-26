@@ -118,12 +118,12 @@ uint32_t reverseBitsSignificance(uint32_t data){
 }
 
 void loop() {
-#ifdef DEBUG_LSB_IRREMOTE2
+#ifdef DEBUG_MSB_IRREMOTE2
   decode_results res;
   if (receiver.decode(&results)) {
     print(res.value, res.decode_type);
 #endif
-#ifndef DEBUG_LSB_IRREMOTE2
+#ifndef DEBUG_MSB_IRREMOTE2
   if (receiver.decode()) {
     IRData * res = receiver.read();
     print(res->decodedRawData, res->protocol);
