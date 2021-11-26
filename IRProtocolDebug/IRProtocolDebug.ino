@@ -1,11 +1,12 @@
 #include <IRremote.h>
 
+//#define DEBUG_MSB_IRREMOTE2 // in order for NEC, Panasonic, Sony, Samsung and JVC to be in non-standard MSB representation
+
 
 #define RECEIVER_PIN 2
 
 
 IRrecv receiver(RECEIVER_PIN);
-IRData * res;
 
 
 void setup() {
@@ -14,7 +15,7 @@ void setup() {
   receiver.enableIRIn();
 }
 
-char * recvIRDataToString(decode_type_t type) {
+const char * recvIRDataProtocolToString(decode_type_t type) {
   switch (type) {
     case UNKNOWN:
       return "UNKNOWN";
@@ -97,12 +98,36 @@ char * recvIRDataToString(decode_type_t type) {
   }
 }
 
+void print(uint32_t data, decode_type_t protocol) {
+  Serial.println(data, HEX);
+  Serial.println(recvIRDataProtocolToString(protocol));
+  Serial.println("--------------------");
+}
+
+uint32_t reverseBitsSignificance(uint32_t data){
+  uint8_t totalBits = sizeof(data) * 8;
+  uint32_t reverse = 0, i, temp;
+
+  for (i = 0; i < totalBits; i++) {
+    temp = (data & (1 << i));
+    if (temp)
+      reverse |= (1 << ((totalBits - 1) - i));
+  }
+
+  return reverse;
+}
+
 void loop() {
+#ifdef DEBUG_LSB_IRREMOTE2
+  decode_results res;
+  if (receiver.decode(&results)) {
+    print(res.value, res.decode_type);
+#endif
+#ifndef DEBUG_LSB_IRREMOTE2
   if (receiver.decode()) {
-    res = receiver.read();
-    Serial.println(res->decodedRawData, HEX);
-    Serial.println(recvIRDataToString(res->protocol));
-    Serial.println("--------------------");
+    IRData * res = receiver.read();
+    print(res->decodedRawData, res->protocol);
+#endif
     receiver.resume();
   }
 }
